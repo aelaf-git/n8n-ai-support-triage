@@ -25,7 +25,7 @@ The workflow follows a "Job-Ready" architectural pattern, ensuring data is never
 ## 📸 Workflow Preview
 
 ### 1. The n8n Workflow Canvas
-![n8n Workflow](https://via.placeholder.com/800x400?text=Upload+your+n8n+Canvas+Screenshot+Here)
+![n8n Workflow](n8n_workflow.png)
 *The end-to-end logic from Webhook entry to departmental branching.*
 
 ### 2. Master Database (Airtable)
