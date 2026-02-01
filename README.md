@@ -43,3 +43,26 @@ To validate the system, use the following `curl` commands in your terminal.
 *Expected Outcome: Logged in Airtable and added to Google Sheets.*
 ```cmd
 curl -X POST https://YOUR_NGROK_URL/webhook-test/support-ticket -H "Content-Type: application/json" -d "{\"name\": \"Alice\", \"email\": \"alice@example.com\", \"message\": \"I was charged twice for my subscription. Please help!\"}"
+```
+### Test Case 2: Technical Issue
+*Expected Outcome: Logged in Airtable and alert sent to Discord.*
+```cmd
+curl -X POST https://YOUR_NGROK_URL/webhook-test/support-ticket -H "Content-Type: application/json" -d "{\"name\": \"Bob\", \"email\": \"bob@tech.com\", \"message\": \"I cannot log in to the dashboard. It shows a 404 error.\"}"
+```
+## 🛡️ Reliability & Error Handling
+This project demonstrates professional-grade reliability practices:
+- **On-Error Continuation**: The Groq node is set to "Continue on Fail" to ensure that even if the AI is down, the raw customer message is still saved to Airtable.
+- **Secure Authentication**:
+  - Uses Service Accounts for Google Sheets (avoiding OAuth redirect issues).
+  - Uses Header Authentication (Bearer tokens) for Groq.
+  - Uses Webhooks for Discord to avoid the overhead of full Bot management.
+- **JSON Enforcement**: The LLM is forced into "JSON Mode" to ensure the automated logic never breaks due to unstructured text.
+## 📦 Installation
+1. **Clone this repository.**
+2. **Import the Workflow**: Open n8n, go to "Workflows" > "Import from File," and select customer_support_triage.json.
+3. **Configure Credentials**:
+  - Add your Groq API Key in the HTTP Request node.
+  - Add your Airtable Personal Access Token.
+  - Add your Google Service Account JSON and share your Sheet with the service account email.
+  - Paste your Discord Webhook URL in the Discord node.
+4. **Activate**: Click the "Execute Workflow" button to start listening for requests.
