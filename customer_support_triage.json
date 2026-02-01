@@ -1,0 +1,303 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-ticket",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -608,
+        -192
+      ],
+      "id": "be6b8966-d405-4245-a80e-72e37f484b92",
+      "name": "Webhook",
+      "webhookId": "REPLACE_WITH_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3-8b-8192\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a support triage assistant. Analyze the user's message. Return a JSON object with keys: 'category' (Billing, Technical, General), 'sentiment' (Positive, Negative, Neutral), and 'summary'.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.body.message }}\"\n    }\n  ],\n  \"response_format\": {\n    \"type\": \"json_object\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -400,
+        -192
+      ],
+      "id": "9e65805f-a073-4fc5-9be3-f28f47549736",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "internal-id",
+          "name": "Groq API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4cb289d5-0cbc-4d00-b4b0-41c2573508a3",
+              "name": "category",
+              "value": "={{ JSON.parse($json.choices[0].message.content).category }}",
+              "type": "string"
+            },
+            {
+              "id": "d266a415-b3e9-42d4-bbbb-4b3da32af897",
+              "name": "summary",
+              "value": "={{ JSON.parse($json.choices[0].message.content).summary }}",
+              "type": "string"
+            },
+            {
+              "id": "29409d69-7568-4336-8278-f9688becf613",
+              "name": "email",
+              "value": "={{ $('Webhook').item.json.body.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        -192
+      ],
+      "id": "e12769b4-7e29-4b8d-829d-57a018ee4920",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Billing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "90bdf862-0450-4458-a804-b24d24ef8a9e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ff6a733e-c1d0-4ff7-b940-55b169f9bafb",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Technical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -192
+      ],
+      "id": "3cf80e40-0820-4bd7-aa2b-34beb39a026a",
+      "name": "Route by Category"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_TABLE_ID",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ $json.email }}",
+            "Category": "={{ $json.category }}",
+            "Summary": "={{ $json.summary }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        -416
+      ],
+      "id": "4a22bfa9-bc67-4c36-9dbc-216659779877",
+      "name": "Airtable Logging",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "internal-id",
+          "name": "Airtable Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=🚨 **URGENT: Technical Support Required** 🚨\n------------------------------------------\n**User:** {{ $json.email }}\n**Issue Summary:** {{ $json.summary }}\n**Sentiment:** {{ $json.sentiment }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -96
+      ],
+      "id": "6f669962-ba3d-4310-be4b-c9e885c9e3b0",
+      "name": "Discord Alert",
+      "webhookId": "REPLACE_WITH_DISCORD_WEBHOOK_ID",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "internal-id",
+          "name": "Discord Webhook"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ $json.email }}",
+            "Category": "={{ $json.category }}",
+            "Summary": "={{ $json.summary }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -288
+      ],
+      "id": "55500632-8b45-4021-bf80-9dc0ba4312f8",
+      "name": "Google Sheets Billing Log",
+      "credentials": {
+        "googleApi": {
+          "id": "internal-id",
+          "name": "Google Service Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Route by Category",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable Logging",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Category": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Billing Log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
