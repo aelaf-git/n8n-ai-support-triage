@@ -29,11 +29,12 @@ The workflow follows a "Job-Ready" architectural pattern, ensuring data is never
 *The end-to-end logic from Webhook entry to departmental branching.*
 
 ### 2. Master Database (Airtable)
-![Airtable View](https://via.placeholder.com/800x300?text=Upload+your+Airtable+Screenshot+Here)
+![Airtable View](Airtable.jpg)
 *Centralized logging of every request with AI summaries.*
 
 ### 3. Departmental Alerts (Discord & Google Sheets)
-![Discord/Sheets View](https://via.placeholder.com/800x300?text=Upload+your+Discord+and+Sheets+Screenshot+Here)
+![Discord](Discord.png)
+![Google Sheets](Google_Sheets.png)
 *Targeted routing: Discord for Technical issues, Sheets for Billing.*
 
 ## 🧪 Testing & Validation
@@ -66,3 +67,20 @@ This project demonstrates professional-grade reliability practices:
   - Add your Google Service Account JSON and share your Sheet with the service account email.
   - Paste your Discord Webhook URL in the Discord node.
 4. **Activate**: Click the "Execute Workflow" button to start listening for requests.
+
+## ⚙️ Post-Import Configuration
+After importing the `customer_support_triage.json` file into n8n, you must update the following placeholders with your own IDs to make the workflow functional:
+
+### 1. Google Sheets
+- **Node**: `Google Sheets Billing Log`
+- **Field**: `Document URL` or `ID`
+- **Action**: Replace `YOUR_GOOGLE_SHEET_ID` with the ID from your spreadsheet URL (the string between `/d/` and `/edit`).
+
+### 2. Airtable
+- **Node**: `Airtable Logging`
+- **Field**: `Base` and `Table`
+- **Action**: Use the dropdown menus to select your specific Base and Table. This will replace the `YOUR_AIRTABLE_BASE_ID` placeholders.
+
+### 3. Webhooks
+- **Node**: `Webhook` and `Discord Alert`
+- **Action**: n8n will generate a unique Webhook URL for you. Make sure to update your `curl` commands and Discord settings with your specific generated IDs.
