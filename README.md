@@ -1,1 +1,45 @@
-# n8n-ai-support-triage
+# AI-Powered Customer Support Triage System (n8n + Groq)
+
+This project is a high-speed, automated backend designed to handle incoming customer support requests. By leveraging Large Language Models (LLMs) and workflow automation, the system categorizes, summarizes, and routes tickets to appropriate departments instantly, reducing manual triage time to zero.
+
+## 🚀 System Architecture
+The workflow follows a "Job-Ready" architectural pattern, ensuring data is never lost and high-priority issues are escalated immediately.
+
+1.  **Ingress (HTTPS Webhook)**: Receives customer data via a secure POST request (tunneled through ngrok for local development).
+2.  **Intelligence (Groq API)**: Processes the raw message using the **Llama-3-8b** model. It performs sentiment analysis and classifies the ticket into categories: `Billing`, `Technical`, or `General`.
+3.  **Data Extraction**: Uses JavaScript expressions to parse the AI's JSON output into usable variables.
+4.  **Database Logging (Airtable)**: Acts as the "Master Log," recording every ticket for long-term storage and audit trails.
+5.  **Conditional Routing (Switch Logic)**:
+    *   **Billing Branch**: Appends data to a **Google Sheet** via a Service Account for the Finance team.
+    *   **Technical Branch**: Triggers a **Discord Webhook** alert for the Engineering team.
+6.  **Response**: Returns a 200 OK status to the client with the Ticket ID and AI-determined category.
+
+## 🛠️ Tech Stack
+- **n8n**: Workflow automation (Self-hosted via Docker).
+- **Groq Cloud**: Llama 3 8B model for high-speed, sub-second text analysis.
+- **Airtable**: Relational database for master ticket management.
+- **Google Sheets API**: Integrated via Google Service Account.
+- **Discord**: Real-time team alerting via Webhooks.
+- **ngrok**: Secure HTTPS tunneling.
+
+## 📸 Workflow Preview
+
+### 1. The n8n Workflow Canvas
+![n8n Workflow](https://via.placeholder.com/800x400?text=Upload+your+n8n+Canvas+Screenshot+Here)
+*The end-to-end logic from Webhook entry to departmental branching.*
+
+### 2. Master Database (Airtable)
+![Airtable View](https://via.placeholder.com/800x300?text=Upload+your+Airtable+Screenshot+Here)
+*Centralized logging of every request with AI summaries.*
+
+### 3. Departmental Alerts (Discord & Google Sheets)
+![Discord/Sheets View](https://via.placeholder.com/800x300?text=Upload+your+Discord+and+Sheets+Screenshot+Here)
+*Targeted routing: Discord for Technical issues, Sheets for Billing.*
+
+## 🧪 Testing & Validation
+To validate the system, use the following `curl` commands in your terminal. 
+
+### Test Case 1: Billing Issue
+*Expected Outcome: Logged in Airtable and added to Google Sheets.*
+```cmd
+curl -X POST https://YOUR_NGROK_URL/webhook-test/support-ticket -H "Content-Type: application/json" -d "{\"name\": \"Alice\", \"email\": \"alice@example.com\", \"message\": \"I was charged twice for my subscription. Please help!\"}"
